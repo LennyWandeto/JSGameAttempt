@@ -18,7 +18,7 @@ app.get('/', (req, res) => {
 
 const backEndPlayers = {}
 const backEndProjectiles = {}
-const backendProjectileId = 0
+let backendProjectileId = 0
 
 io.on('connection', (socket) => {
   console.log('a user has connected')
@@ -29,6 +29,13 @@ io.on('connection', (socket) => {
     sequenceNumber: 0
   }
   io.emit('updatePlayers', backEndPlayers)
+
+  socket.on('initCanvas', ({width, height})=>{
+    backEndPlayers[socket.id].canvas = {
+      width,
+      height
+    }
+  })
 
   socket.on('disconnect', (reason) => {
     console.log(reason)
@@ -58,6 +65,7 @@ io.on('connection', (socket) => {
       x,
       y,
       angle,
+      playerId: socket.id,
       radius: 5,
       color: 'white',
       velocity: {
@@ -67,8 +75,26 @@ io.on('connection', (socket) => {
     }
   })
 })
+
+// backend ticker
 setInterval(() => {
 
+  // update projectile position
+  for (const id in backEndProjectiles){
+    backEndProjectiles[id].x += backEndProjectiles[id].velocity.x
+    backEndProjectiles[id].y += backEndProjectiles[id].velocity.y
+
+    // remove projectiles if they go off screen
+    const PROJECTILE_RADIUS = 5
+    if(backEndProjectiles[id].x - PROJECTILE_RADIUS >= backEndPlayers[backEndProjectiles[id].playerId]?.canvas?.width ||
+      backEndProjectiles[id].x + PROJECTILE_RADIUS <= 0 ||
+      backEndProjectiles[id].y - PROJECTILE_RADIUS >= backEndPlayers[backEndProjectiles[id].playerId]?.canvas?.height ||
+      backEndProjectiles[id].y + PROJECTILE_RADIUS <= 0  // remove projectiles that go off screen
+    ){
+      delete backEndProjectiles[id]
+    }
+  }
+  io.emit('updateProjectiles', backEndProjectiles)
   io.emit('updatePlayers', backEndPlayers)
 }, 15)
 server.listen(port, () => {

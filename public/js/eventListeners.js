@@ -14,8 +14,8 @@ addEventListener('click', (event) => {
   // }
 
   socket.emit('shoot', {
-    x: playerPosition.x + velocity.x,
-    y: playerPosition.y + velocity.y,
+    x: playerPosition.x ,
+    y: playerPosition.y ,
     angle
   })
   // frontEndProjectiles.push(

@@ -21,7 +21,36 @@ const y = canvas.height / 2
 // const player = new Player(x, y, 10, 'white')
 const frontEndPlayers = {}
 
-const frontEndProjectiles = []
+const frontEndProjectiles = {}
+
+socket.on('connect', ()=>{
+  socket.emit('initCanvas', {width: canvas.width, height: canvas.height})
+})
+
+socket.on('updateProjectiles', (backEndProjectiles)=>{
+  for (const id in backEndProjectiles){
+    const backEndProjectile = backEndProjectiles[id]
+    if (!frontEndProjectiles[id]){
+      frontEndProjectiles[id] = new Projectile({
+        x: backEndProjectile.x,
+        y: backEndProjectile.y,
+        radius: backEndProjectile.radius,
+        color: frontEndPlayers[backEndProjectile.playerId]?.color,
+        velocity: backEndProjectile.velocity
+      })
+    }else{
+      frontEndProjectiles[id].x = backEndProjectile.x
+      frontEndProjectiles[id].y = backEndProjectile.y
+      frontEndProjectiles[id].velocity.x = backEndProjectile.velocity.x
+      frontEndProjectiles[id].velocity.y = backEndProjectile.velocity.y
+    }
+  }
+  for (const frontEndProjectileId in frontEndProjectiles){
+    if (!backEndProjectiles[frontEndProjectileId]){
+      delete frontEndProjectiles[frontEndProjectileId]
+    }
+  }
+})
 
 socket.on('updatePlayers', (backendPlayers) => {
   for (const id in backendPlayers) {
@@ -85,11 +114,16 @@ for (const id in frontEndPlayers){
   const player = frontEndPlayers[id]
   player.draw()
 }
-  for (let i = frontEndProjectiles.length - 1; i >= 0; i--){
-    const frontEndProjectile = frontEndProjectiles[i]
-    frontEndProjectile.update()
-    
-  }
+
+for (const id in frontEndProjectiles){
+  const frontEndProjectile = frontEndProjectiles[id]
+  frontEndProjectile.draw()
+}
+  // for (let i = frontEndProjectiles.length - 1; i >= 0; i--){
+  //   const frontEndProjectile = frontEndProjectiles[i]
+  //   frontEndProjectile.update()
+
+  // }
 
 }
 
