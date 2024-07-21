@@ -27,7 +27,8 @@ io.on('connection', (socket) => {
     x: 500 * Math.random(),
     y: 500 * Math.random(),
     color: `hsl(${360 * Math.random()}, 100%, 50%)`,
-    sequenceNumber: 0
+    sequenceNumber: 0,
+    score: 0
   }
   io.emit('updatePlayers', backEndPlayers)
 
@@ -105,9 +106,14 @@ setInterval(() => {
         backEndProjectiles[id].x - backEndPlayer.x,
         backEndProjectiles[id].y - backEndPlayer.y
       )
+
+      // collission detection
       if (Dist < backEndProjectiles[id].radius + backEndPlayer.radius &&
         backEndProjectiles[id].playerId !== playerId
       ){
+        if (backEndPlayers[backEndProjectiles[id].playerId]){
+          backEndPlayers[backEndProjectiles[id].playerId].score++;
+        }
         delete backEndProjectiles[id]
         delete backEndPlayers[playerId]
         break;  // remove player if they collide with a projectile

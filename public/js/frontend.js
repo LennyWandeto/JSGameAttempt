@@ -3,9 +3,6 @@ const c = canvas.getContext('2d')
 
 const socket = io()
 
-
-
-
  
 const scoreEl = document.querySelector('#scoreEl')
 
@@ -67,8 +64,33 @@ socket.on('updatePlayers', (backendPlayers) => {
         radius: 10, 
         color: backendPlayer.color
       })
+      document.getElementById("playerLabels").innerHTML +=`
+        <div data-id="${id}" data-score="${backendPlayer.score}">${id} : ${backendPlayer.score}</div>
+      `
     }
     else{
+      document.querySelector(`div[data-id="${id}"]`).innerHTML = `${id} : ${backendPlayer.score}`
+      document.querySelector(`div[data-id="${id}"]`).setAttribute('data-score', backendPlayer.score)
+      const parentDiv  = document.querySelector('#playerLabels')
+      const childDivs = Array.from(parentDiv.querySelectorAll('div'))
+
+      // sort divs by score in descending order
+      childDivs.sort((a, b) => {
+        const Ascore = Number(a.getAttribute('data-score'))
+        const Bscore = Number(b.getAttribute('data-score'))
+
+        return Bscore - Ascore
+      })
+
+      // removes old elements
+      childDivs.forEach(div =>{
+        parentDiv.removeChild(div)
+      })
+
+      // adds new elements
+      childDivs.forEach(div =>{
+        parentDiv.appendChild(div)
+      })
       if (id === socket.id){
         // for the single player only
 
@@ -100,9 +122,12 @@ socket.on('updatePlayers', (backendPlayers) => {
       }
     }
   }
+  // deletion properties of frontend players here
   for (const id in frontEndPlayers){
     if (!backendPlayers[id]){
       delete frontEndPlayers[id]
+      const divtoDelete = document.querySelector(`div[data-id="${id}"]`)
+      divtoDelete.parentNode.removeChild(divtoDelete)
     }
   }
 })
