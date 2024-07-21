@@ -1,3 +1,2 @@
-This is a starter project for the [Chris Courses Online Multiplayer Game Tutorial](https://www.youtube.com/watch?v=Wcvqnx14cZA) available on YouTube.
-
-To get started, download this repo and double click `index.html` to see the single-player game we'll base our multiplayer-game off of.
+This is an attempt at making a game.
+This game was deployed on Render and you can access it using the following link: https://jsgameattempt.onrender.com
