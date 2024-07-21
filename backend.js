@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 
 const SPEED = 10
+const RADIUS = 10
 // Socket setupp!!!
 const http = require('http')
 const server = http.createServer(app)
@@ -30,10 +31,13 @@ io.on('connection', (socket) => {
   }
   io.emit('updatePlayers', backEndPlayers)
 
-  socket.on('initCanvas', ({width, height})=>{
+  socket.on('initCanvas', ({width, height, devicePixelRatio})=>{
     backEndPlayers[socket.id].canvas = {
       width,
       height
+    }
+    if (devicePixelRatio > 1){
+      backEndPlayers[socket.id].radius = 2 * RADIUS
     }
   })
 
@@ -92,6 +96,23 @@ setInterval(() => {
       backEndProjectiles[id].y + PROJECTILE_RADIUS <= 0  // remove projectiles that go off screen
     ){
       delete backEndProjectiles[id]
+      continue;
+    }
+    for (const playerId in backEndPlayers){
+      const backEndPlayer = backEndPlayers[playerId]
+
+      const Dist  = Math.hypot(
+        backEndProjectiles[id].x - backEndPlayer.x,
+        backEndProjectiles[id].y - backEndPlayer.y
+      )
+      if (Dist < backEndProjectiles[id].radius + backEndPlayer.radius &&
+        backEndProjectiles[id].playerId !== playerId
+      ){
+        delete backEndProjectiles[id]
+        delete backEndPlayers[playerId]
+        break;  // remove player if they collide with a projectile
+      }
+
     }
   }
   io.emit('updateProjectiles', backEndProjectiles)
